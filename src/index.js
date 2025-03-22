@@ -6,6 +6,14 @@ dotenv.config({
 })
 
 connectDB()
+.then(()=>{
+    app.listen(process.env.PORT || 6000 ,()=>{
+        console.log(`Server is running at Port: ${process.env.PORT}`);
+    })
+})
+.catch((err)=>{
+    console.log("DB connection failed !!!",err)
+})
 
 
 
