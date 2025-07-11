@@ -47,24 +47,21 @@ const registerUser = asyncHandler(async (req, res) => {
     console.log("req.files", req.files);
 
     const avatarLocalPath = req.files?.avatar?.[0]?.path || null;
-    const coverImageLocalPath = req.files?.coverImage?.[0]?.path || null;
+    // const coverImageLocalPath = req.files?.coverImage?.[0]?.path || null;
 
-    let avatar = null;
-    let coverImage = null;
+    let coverImageLocalPath;
 
-    if (avatarLocalPath) {
-        avatar = await uploadOnCloudinary(avatarLocalPath);
-        if (!avatar) {
-            throw new ApiError(400, "Avatar upload failed");
-        }
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files?.coverImage[0]?.path;
     }
 
-    if (coverImageLocalPath) {
-        coverImage = await uploadOnCloudinary(coverImageLocalPath);
-        if (!coverImage) {
-            throw new ApiError(400, "Cover image upload failed");
-        }
+    if(!avatarLocalPath) {
+        throw new ApiError(400, "Avatar image is required");    
     }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
 
     const user = await User.create({
         username: username.toLowerCase(),
@@ -95,7 +92,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // send cookie
 
     const { email, username, password } = req.body;
-    console.log("req.body", req.body);
+    // console.log("req.body", req.body);
 
     if (!username && !email) {
         throw new ApiError(400, "Username or password is required");
@@ -118,7 +115,8 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
-
+    // console.log("Access Token:", accessToken);
+    // console.log("Refresh Token:", refreshToken);
     const options = {
         httpOnly: true,
         secure: true
@@ -141,7 +139,7 @@ const loginUser = asyncHandler(async (req, res) => {
     
 })
 const logoutUser = asyncHandler(async(req,res)=>{
-    console.log("req.user", req.user);
+    // console.log("req.user", req.user);
     await User.findByIdAndUpdate(
         req.user._id,
         {
