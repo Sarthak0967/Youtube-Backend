@@ -1,11 +1,11 @@
-import mongoose from "mongoose"
-import {Video} from "../models/video.model.js"
-import {Subscription} from "../models/subscription.model.js"
-import {Like} from "../models/like.model.js"
-import {ApiErrors} from "../utils/apiErrors.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
-import {User} from "../models/user.model.js"
+import mongoose from "mongoose";
+import { Video } from "../models/video.models.js";
+import { Subscription } from "../models/subscription.models.js";
+import { Like } from "../models/like.models.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.models.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
@@ -58,7 +58,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
     ])
 
     if(!subscribers || !info){
-        throw new ApiErrors(500,"failed to fetch details")
+        throw new ApiError(500,"failed to fetch details")
     }
 
     const response = {
@@ -78,13 +78,13 @@ const getChannelVideosGlobal = asyncHandler(async (req, res) => {
     const {channelName} = req.params
 
     if(!channelName){
-        throw new ApiErrors(404,"provide channel name")
+        throw new ApiError(404,"provide channel name")
     }
 
     const user = await User.findOne({channelName})
 
     if(!user){
-        throw new ApiErrors(404,"channel not found")
+        throw new ApiError(404,"channel not found")
     }
 
     const videos = await Video.aggregate([
@@ -115,7 +115,7 @@ const getChannelVideosGlobal = asyncHandler(async (req, res) => {
     ])
    
     if(videos.length === 0){
-        throw new ApiErrors(404,"This user have not uploaded any videos yet")
+        throw new ApiError(404,"This user have not uploaded any videos yet")
     }
 
     return res

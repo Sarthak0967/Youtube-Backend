@@ -1,11 +1,10 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {Like} from "../models/like.model.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {ApiErrors} from "../utils/apiErrors.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
-import { Comment } from "../models/comment.model.js"
-import { json } from "express"
-import { Tweet } from "../models/tweet.model.js"
+import mongoose, { isValidObjectId } from "mongoose";
+import { Like } from "../models/like.models.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Comment } from "../models/comment.models.js";
+import { Tweet } from "../models/tweet.models.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const {videoId} = req.params
@@ -24,7 +23,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
                     .status(200)
                     .json(new ApiResponse(200,"liked","like added"))
             }    catch (error) {
-                throw new ApiErrors(500,"something went wrong while adding your like")
+                throw new ApiError(500,"something went wrong while adding your like")
             }
     }else{
         try {
@@ -34,7 +33,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
             .status(200)
             .json(new ApiResponse(200,"unliked ","like removed"))
         } catch (error) {
-                throw new ApiErrors(500,"something went wrong when removing your like !!")
+                throw new ApiError(500,"something went wrong when removing your like !!")
         }
     }
 
@@ -45,13 +44,13 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     //TODO: toggle like on comment
 
     if(!commentId || isValidObjectId(commentId)){
-        throw new ApiErrors(400,"give proper comment id")
+        throw new ApiError(400,"give proper comment id")
     }
 
     const ifCommentExist = await Comment.findById(commentId)
 
     if(!ifCommentExist){
-        throw new ApiErrors(404,"The comment not found")
+        throw new ApiError(404,"The comment not found")
     }
 
     const likeOnComment = await Like.findOne({likedBy:req.user._id,comment:commentId})
@@ -67,7 +66,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
             .status(200)
             .json(new ApiResponse(200,"liked","like added"))
         } catch (error) {
-            throw new ApiErrors(500,"something went wrong when adding like")
+            throw new ApiError(500,"something went wrong when adding like")
         }
     }else{
         try {
@@ -75,9 +74,9 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
             return res
             .status(200)
-            json(new ApiResponse(200,"unliked","like removed"))
+            .json(new ApiResponse(200,"unliked","like removed"))
         } catch (error) {
-            throw new ApiErrors(500,"something went wrong when removing your like on comment")
+            throw new ApiError(500,"something went wrong when removing your like on comment")
         }
     }
 
@@ -88,13 +87,13 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     //TODO: toggle like on tweet
 
     if(!tweetId || isValidObjectId(tweetId)){
-        throw new ApiErrors(404,"provide tweet id")
+        throw new ApiError(404,"provide tweet id")
     }
 
     const ifTweetExist = await Tweet.findById(tweetId)
 
     if(!ifTweetExist){
-        throw new ApiErrors("400","Tweet not exist")
+        throw new ApiError(400,"Tweet not exist")
     }
 
     const tweet = await Like.findOne({likedBy:req.user._id,tweet:tweetId})
@@ -110,7 +109,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             .status(200)
             .json(new ApiResponse(200,"liked","liked added"))
         } catch (error) {
-            throw new ApiErrors(500,"something went wrong when adding your like")
+            throw new ApiError(500,"something went wrong when adding your like")
         }
     }else{
         try {
@@ -120,7 +119,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             .status(200)
             .json(new ApiResponse(200,"unliked","like removed"))
         } catch (error) {
-            throw new ApiErrors(500,"something went wrong when removing your like from tweet")
+            throw new ApiError(500,"something went wrong when removing your like from tweet")
         }
     }
 }

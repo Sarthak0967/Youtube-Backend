@@ -1,12 +1,12 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {Video} from "../models/video.models.js"
-import {Like} from "../models/like.models.js"
-import {Comment} from "../models/comment.models.js"
-import {User} from "../models/user.models.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {ApiErrors } from "../utils/ApiError.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import mongoose, { isValidObjectId } from "mongoose";
+import { Video } from "../models/video.models.js";
+import { Like } from "../models/like.models.js";
+import { Comment } from "../models/comment.models.js";
+import { User } from "../models/user.models.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -68,21 +68,21 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description,thumbnail} = req.body
     // TODO: get video, upload to cloudinary, create video
     if([title,description,thumbnail].some(item => item.trim()==="")){
-        throw new ApiErrors(400,"provide title, description and thumbnali")
+        throw new ApiError(400,"provide title, description and thumbnali")
     }
 
     const videoLocalPath = req.files.videoFile[0].path
     const thumbnailLocalPath = req.files.thumbnail[0].path
 
     if(!videoLocalPath || !thumbnailLocalPath){
-        throw new ApiErrors(404,"provide proper video and thumbnail to publish a video")
+        throw new ApiError(404,"provide proper video and thumbnail to publish a video")
     }
 
     const video = await uploadOnCloudinary(videoLocalPath)
     const thumbnailCloudnary = await uploadOnCloudinary(thumbnailLocalPath)
 
     if(!video || !thumbnailCloudnary){
-        throw new ApiErrors(500,"something went wrong when uploading video or thumbnail")
+        throw new ApiError(500,"something went wrong when uploading video or thumbnail")
     }
 
     const uploaded = await Video.create({
@@ -95,7 +95,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     })
 
     if(!uploaded){
-        throw new ApiErrors(500,"something went wrong when making a document")
+        throw new ApiError(500,"something went wrong when making a document")
     }
 
     return res
@@ -108,7 +108,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     //TODO: get video by id
 
     if(!videoId || !isValidObjectId(videoId)){
-        throw new ApiErrors(400,"provide video id")
+        throw new ApiError(400,"provide video id")
     }
         const video = await Video.aggregate([
             {
@@ -199,21 +199,21 @@ const updateVideo = asyncHandler(async (req, res) => {
     const {titleNew,descriptionNew} = req.body
 
     if(!videoId || !isValidObjectId(videoId)){
-        throw new ApiErrors(400,"provide valid videoId")
+        throw new ApiError(400,"provide valid videoId")
     }
 
     const video = await Video.findById(videoId)
     
     if(!video){
-        throw new ApiErrors(404,"video not found")
+        throw new ApiError(404,"video not found")
     }
 
     if(!video.owner.toString().equels(req.user._id.toString())){
-        throw new ApiErrors(408,"You have no rights to update this video")
+        throw new ApiError(408,"You have no rights to update this video")
     }
 
     if(!titleNew && !descriptionNew){
-        throw new ApiErrors(409,"Atleast provide title and description to update")
+        throw new ApiError(409,"Atleast provide title and description to update")
     }
 
     const updatedVideo = await Video.findByIdAndUpdate(videoId,{
@@ -226,7 +226,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     })
 
     if(!updatedVideo){
-        throw new ApiErrors(500,"something went wrong when updataing details")
+        throw new ApiError(500,"something went wrong when updataing details")
     }
 
     return res
@@ -240,19 +240,19 @@ const deleteVideo = asyncHandler(async (req, res) => {
     //TODO: delete video
 
     if(!videoId || !isValidObjectId(videoId)){
-        throw new ApiErrors(400,"provide valid videoId")
+        throw new ApiError(400,"provide valid videoId")
     }
 
     const video = await Video.findById(videoId)
     
     if(!video){
-        throw new ApiErrors(404,"video not found")
+        throw new ApiError(404,"video not found")
     }
 
     const deleted = await Video.findByIdAndDelete(videoId)
 
     if(!deleted){
-        throw new ApiErrors(500,"something went wrong when deleting a video")
+        throw new ApiError(500,"something went wrong when deleting a video")
     }
 
     await Like.deleteMany({video:videoId})
@@ -271,17 +271,17 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
 
     if(!videoId || !isValidObjectId(videoId)){
-        throw new ApiErrors(400,"provide valid videoId")
+        throw new ApiError(400,"provide valid videoId")
     }
 
     const video = await Video.findById(videoId)
     
     if(!video){
-        throw new ApiErrors(404,"video not found")
+        throw new ApiError(404,"video not found")
     }
 
     if(!video.owner.toString().equels(req.user._id.toString())){
-        throw new ApiErrors(408,"You have no rights to update this video")
+        throw new ApiError(408,"You have no rights to update this video")
     }
 
     const updated = await Video.findByIdAndUpdate(videoId,{
@@ -293,12 +293,12 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     })
 
     if(!updated){
-        throw new ApiErrors(500,"something went wrong when toggling publish")
+        throw new ApiError(500,"something went wrong when toggling publish")
     }
 
     return res
     .status(200)
-    .json(new ApiErrors(200,updated,"publish toggled"))
+    .json(new ApiError(200,updated,"publish toggled"))
 })
 
 export {

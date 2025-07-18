@@ -1,9 +1,9 @@
-import mongoose, { isValidObjectId } from "mongoose"
-import {Tweet} from "../models/tweet.model.js"
-import {User} from "../models/user.model.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {ApiErrors} from "../utils/apiErrors.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import mongoose, { isValidObjectId } from "mongoose";
+import { Tweet } from "../models/tweet.models.js";
+import { User } from "../models/user.models.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createTweet = asyncHandler(async (req, res) => {
     //TODO: create tweet
@@ -11,7 +11,7 @@ const createTweet = asyncHandler(async (req, res) => {
     const {content} = req.body
 
     if(!content){
-        throw new ApiErrors(400,"provide the content")
+        throw new ApiError(400,"provide the content")
     }
 
     const tweet = await Tweet.create({
@@ -20,7 +20,7 @@ const createTweet = asyncHandler(async (req, res) => {
     })
 
     if(!tweet){
-        throw new ApiErrors(500,"something went wrong when creating your tweet")
+        throw new ApiError(500,"something went wrong when creating your tweet")
     }
 
     return res
@@ -33,7 +33,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     const {userId} = req.params
 
     if(!userId || !isValidObjectId(userId)){
-        throw new ApiErrors(400,"provide proper userid")
+        throw new ApiError(400,"provide proper userid")
     }
 
     const userTweets = await Tweet.aggregate([
@@ -60,7 +60,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     ])
 
     if(!userTweets.length){
-        throw new ApiErrors(408,"user have no tweets yet")
+        throw new ApiError(408,"user have no tweets yet")
     }
 
     return res
@@ -75,21 +75,21 @@ const updateTweet = asyncHandler(async (req, res) => {
     const {content} = req.body
 
     if(!tweetId || !isValidObjectId(tweetId)){
-        throw new ApiErrors(400,"provide proper tweet id")
+        throw new ApiError(400,"provide proper tweet id")
     }
 
     if(!content ){
-        throw new ApiErrors(400,"provide proper description")
+        throw new ApiError(400,"provide proper description")
     }
 
     const tweet = await Tweet.findById(tweetId)
 
     if(!tweet){
-        throw new ApiErrors(404,"This tweet does not exist")
+        throw new ApiError(404,"This tweet does not exist")
     }
 
     if(!tweet.owner.toString().equels(req.user._id.toString())){
-        throw new ApiErrors(408,"You are not the owner of this tweet unable to edit")
+        throw new ApiError(408,"You are not the owner of this tweet unable to edit")
     }
 
     const updatedTweet = await Tweet.findByIdAndUpdate(tweetId,{
@@ -100,13 +100,13 @@ const updateTweet = asyncHandler(async (req, res) => {
         new:true
     })
 
-    if(!updateTweet){
-        throw new ApiErrors(500,"something went wrong when updating your tweet")
+    if(!updatedTweet){
+        throw new ApiError(500,"something went wrong when updating your tweet")
     }
 
     return res
     .status(200)
-    .json(new ApiResponse(200,updateTweet,"tweet updated successfully"))
+    .json(new ApiResponse(200,updatedTweet,"tweet updated successfully"))
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
@@ -114,23 +114,23 @@ const deleteTweet = asyncHandler(async (req, res) => {
     const {tweetId} = req.params
 
     if(!tweetId || !isValidObjectId(tweetId)){
-        throw new ApiErrors(400,"provide proper tweet id")
+        throw new ApiError(400,"provide proper tweet id")
     }
 
     const tweet = await Tweet.findById(tweetId)
 
     if(!tweet){
-        throw new ApiErrors(404,"This tweet does not exist")
+        throw new ApiError(404,"This tweet does not exist")
     }
 
     if(!tweet.owner.toString().equels(req.user._id.toString())){
-        throw new ApiErrors(408,"You are not the owner of this tweet unable to edit")
+        throw new ApiError(408,"You are not the owner of this tweet unable to edit")
     }
 
     const deleted = await Tweet.findByIdAndDelete(tweetId)
 
     if(!deleted){
-        throw new ApiErrors(500,"something went wrong when deleting your tweet")
+        throw new ApiError(500,"something went wrong when deleting your tweet")
     }
 
     return res

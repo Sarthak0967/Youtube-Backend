@@ -1,9 +1,9 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {User} from "../models/user.model.js"
-import { Subscription } from "../models/subscriptions.model.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {ApiErrors} from "../utils/apiErrors.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import mongoose, { isValidObjectId } from "mongoose";
+import { User } from "../models/user.models.js";
+import { Subscription } from "../models/subscription.models.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 
 const toggleSubscription = asyncHandler(async (req, res) => {
@@ -11,13 +11,13 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     // TODO: toggle subscription
 
     if(!channelId || !isValidObjectId(channelId)){
-        throw new ApiErrors(400,"Provide channel id")
+        throw new ApiError(400,"Provide channel id")
     }
 
     const channelExist = await User.findById(channelId)
 
     if(!channelExist){
-        throw new ApiErrors(404,"provided id does not exist")
+        throw new ApiError(404,"provided id does not exist")
     }
 
     const isExist = await Subscription.findOne({subscriber:req.user._id,channel:channelId})
@@ -33,7 +33,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
          .status(200)
          .json(new ApiResponse(200,"subscribed","subscription added"))
        } catch (error) {
-        throw new ApiErrors(500,"something went wrong when adding your subscription")
+        throw new ApiError(500,"something went wrong when adding your subscription")
        }
     }else{
         try {
@@ -43,7 +43,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
             .status(200)
             .json(new ApiResponse(200,"subscription removed","removed"))
         } catch (error) {
-            throw new ApiErrors(500,"something went wrong when removing your subscription")
+            throw new ApiError(500,"something went wrong when removing your subscription")
         }
     }
 })
@@ -53,13 +53,13 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const {channelId} = req.params
 
     if(!channelId || !isValidObjectId(channelId)){
-        throw new ApiErrors(400,"Provide channel id")
+        throw new ApiError(400,"Provide channel id")
     }
 
     const channelExist = await User.findById(channelId)
 
     if(!channelExist){
-        throw new ApiErrors(404,"provided id does not exist")
+        throw new ApiError(404,"provided id does not exist")
     }
 
     const subscribers = await Subscription.aggregate([
@@ -90,7 +90,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     ])
 
     if(!subscribers.length){
-        throw new ApiErrors(404,"This channel have no subscribers yet")
+        throw new ApiError(404,"This channel have no subscribers yet")
     }
 
     const info = {
@@ -109,13 +109,13 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     const { subscriberId } = req.params
 
     if(!subscriberId || !isValidObjectId(subscriberId)){
-        throw new ApiErrors(400,"provide subscriber id")
+        throw new ApiError(400,"provide subscriber id")
     }
 
     const user = await User.findById(subscriberId)
 
     if(!user){
-        throw new ApiErrors(404,"subscriber not found")
+        throw new ApiError(404,"subscriber not found")
     }
 
     const subscribedChannel = await Subscription.aggregate([
@@ -146,7 +146,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     ])
 
     if(!subscribedChannel.length){
-        throw new ApiErrors(408,"the user have not subscribed to any channel")
+        throw new ApiError(408,"the user have not subscribed to any channel")
     }
 
     return res
